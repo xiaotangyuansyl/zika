@@ -1,0 +1,26 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汉字学习卡片</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>汉字学习卡片</h1>
+    <div class="card-container">
+        <div class="card">
+            <div class="character" id="currentChar" onclick="playPronunciation()">字</div>
+            <div class="pinyin" id="currentPinyin"></div>
+            <div class="words" id="wordGroup1"></div>
+            <div class="words" id="wordGroup2"></div>
+            <div class="words" id="wordGroup3"></div>
+        </div>
+    </div>
+    <div class="button-group">
+        <button onclick="showRandomCard()">换一张卡片</button>
+        <button onclick="playPronunciation()">?? 朗读发音</button>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

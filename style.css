@@ -1,0 +1,36 @@
+body {
+    font-family: 'Î¢ÈíÑÅºÚ', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f0f8ff;
+    padding: 20px;
+}
+
+.card-container {
+    width: 90%;
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.character {
+    font-size: 48px;
+    color: #2c3e50;
+    margin: 20px 0;
+    cursor: pointer;
+}
+
+.pinyin {
+    color: #7f8c8d;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.words {
+    font-size: 20px;
+    line-height: 1.6;
+    margin: 10px;
+}
