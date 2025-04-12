@@ -3,24 +3,283 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>汉字学习卡片</title>
-    <link rel="stylesheet" href="style.css">
+    <title>汉字字卡学习</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            text-align: center;
+            background-color: #f0f9ff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2b6cb0;
+        }
+        .level-selector {
+            margin: 20px 0;
+        }
+        button {
+            background-color: #4299e1;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 0 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2b6cb0;
+        }
+        .card {
+            width: 300px;
+            height: 400px;
+            margin: 20px auto;
+            perspective: 1000px;
+        }
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+        .card:hover .card-inner {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .card-front {
+            background-color: #ebf8ff;
+            color: #2b6cb0;
+        }
+        .card-back {
+            background-color: #bee3f8;
+            color: #2c5282;
+            transform: rotateY(180deg);
+        }
+        .character {
+            font-size: 120px;
+            margin: 20px 0;
+            cursor: pointer;
+        }
+        .pinyin {
+            font-size: 36px;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+        .words {
+            font-size: 24px;
+            line-height: 1.5;
+        }
+        .controls {
+            margin-top: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+        .speaker-icon {
+            font-size: 24px;
+            margin-left: 10px;
+            cursor: pointer;
+            color: #4a5568;
+        }
+    </style>
 </head>
 <body>
-    <h1>汉字学习卡片</h1>
-    <div class="card-container">
-        <div class="card">
-            <div class="character" id="currentChar" onclick="playPronunciation()">字</div>
-            <div class="pinyin" id="currentPinyin"></div>
-            <div class="words" id="wordGroup1"></div>
-            <div class="words" id="wordGroup2"></div>
-            <div class="words" id="wordGroup3"></div>
+    <div class="container">
+        <h1>汉字字卡学习</h1>
+        
+        <div class="level-selector">
+            <button onclick="selectLevel('small')">小班字卡</button>
+            <button onclick="selectLevel('medium')">中班字卡</button>
+            <button onclick="selectLevel('large')">大班字卡</button>
+        </div>
+        
+        <div id="card-container" class="hidden">
+            <div class="card">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div id="current-character" class="character">字
+                            <span class="speaker-icon" onclick="speakCurrentCharacter(event)">🔊</span>
+                        </div>
+                    </div>
+                    <div class="card-back">
+                        <div id="current-pinyin" class="pinyin">zì</div>
+                        <div id="current-words" class="words">
+                            <div>汉字</div>
+                            <div>写字</div>
+                            <div>字母</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button onclick="nextCard()">下一个字</button>
+                <button onclick="speakCurrentCharacter()">朗读这个字</button>
+            </div>
         </div>
     </div>
-    <div class="button-group">
-        <button onclick="showRandomCard()">换一张卡片</button>
-        <button onclick="playPronunciation()">🔊 朗读发音</button>
-    </div>
-    <script src="script.js"></script>
+
+    <script>
+        // 字卡数据库
+        const wordCards = {
+            small: [
+                { char: "一", pinyin: "yī", words: ["一个", "第一", "一起"] },
+                { char: "二", pinyin: "èr", words: ["二月", "第二", "二胡"] },
+                { char: "三", pinyin: "sān", words: ["三月", "第三", "三岁"] },
+                { char: "十", pinyin: "shí", words: ["十月", "十分", "十岁"] },
+                { char: "人", pinyin: "rén", words: ["人民", "大人", "人口"] },
+                { char: "口", pinyin: "kǒu", words: ["口水", "出口", "门口"] },
+                { char: "上", pinyin: "shàng", words: ["上面", "上学", "上车"] },
+                { char: "下", pinyin: "xià", words: ["下面", "下车", "下午"] },
+                { char: "大", pinyin: "dà", words: ["大人", "大小", "大学"] },
+                { char: "小", pinyin: "xiǎo", words: ["小孩", "小学", "大小"] },
+                { char: "儿", pinyin: "ér", words: ["儿子", "儿童", "女儿"] },
+                { char: "木", pinyin: "mù", words: ["木头", "树木", "木马"] },
+                { char: "土", pinyin: "tǔ", words: ["土地", "泥土", "土豆"] },
+                { char: "天", pinyin: "tiān", words: ["天空", "天气", "今天"] },
+                { char: "火", pinyin: "huǒ", words: ["火车", "火灾", "火苗"] },
+                { char: "中", pinyin: "zhōng", words: ["中国", "中间", "中午"] },
+                { char: "日", pinyin: "rì", words: ["日子", "生日", "日历"] },
+                { char: "个", pinyin: "gè", words: ["个人", "个别", "个子"] },
+                { char: "工", pinyin: "gōng", words: ["工人", "工作", "工厂"] },
+                { char: "广", pinyin: "guǎng", words: ["广告", "广场", "广东"] }
+            ],
+            medium: [
+                { char: "手", pinyin: "shǒu", words: ["手机", "手表", "洗手"] },
+                { char: "文", pinyin: "wén", words: ["文化", "中文", "作文"] },
+                { char: "禾", pinyin: "hé", words: ["禾苗", "禾本科", "禾田"] },
+                { char: "子", pinyin: "zǐ", words: ["孩子", "儿子", "子女"] },
+                { char: "门", pinyin: "mén", words: ["门口", "大门", "门铃"] },
+                { char: "月", pinyin: "yuè", words: ["月亮", "月份", "月饼"] },
+                { char: "不", pinyin: "bù", words: ["不要", "不是", "不好"] },
+                { char: "开", pinyin: "kāi", words: ["开心", "开门", "开车"] },
+                { char: "四", pinyin: "sì", words: ["四月", "四季", "四周"] },
+                { char: "五", pinyin: "wǔ", words: ["五月", "五个", "五彩"] },
+                { char: "六", pinyin: "liù", words: ["六月", "六个", "六岁"] },
+                { char: "七", pinyin: "qī", words: ["七月", "七个", "七彩"] },
+                { char: "八", pinyin: "bā", words: ["八月", "八个", "八哥"] },
+                { char: "九", pinyin: "jiǔ", words: ["九月", "九个", "九岁"] },
+                { char: "目", pinyin: "mù", words: ["目标", "目的", "目录"] },
+                { char: "耳", pinyin: "ěr", words: ["耳朵", "耳机", "耳环"] },
+                { char: "头", pinyin: "tóu", words: ["头发", "头脑", "头顶"] },
+                { char: "米", pinyin: "mǐ", words: ["米饭", "大米", "米粉"] },
+                { char: "见", pinyin: "jiàn", words: ["见面", "看见", "见解"] },
+                { char: "白", pinyin: "bái", words: ["白色", "白天", "白云"] }
+            ],
+            large: [
+                { char: "爸", pinyin: "bà", words: ["爸爸", "爸妈", "老爸"] },
+                { char: "妈", pinyin: "mā", words: ["妈妈", "爸妈", "老妈"] },
+                { char: "爷", pinyin: "yé", words: ["爷爷", "大爷", "爷孙"] },
+                { char: "奶", pinyin: "nǎi", words: ["奶奶", "牛奶", "奶粉"] },
+                { char: "鸟", pinyin: "niǎo", words: ["小鸟", "鸟儿", "鸟巢"] },
+                { char: "升", pinyin: "shēng", words: ["升起", "上升", "升学"] },
+                { char: "足", pinyin: "zú", words: ["足球", "足够", "手足"] },
+                { char: "走", pinyin: "zǒu", words: ["走路", "行走", "走开"] },
+                { char: "方", pinyin: "fāng", words: ["方向", "方法", "方面"] },
+                { char: "半", pinyin: "bàn", words: ["一半", "半天", "半路"] },
+                { char: "业", pinyin: "yè", words: ["作业", "业务", "工业"] },
+                { char: "本", pinyin: "běn", words: ["书本", "本子", "本来"] },
+                { char: "平", pinyin: "píng", words: ["平安", "平时", "水平"] },
+                { char: "书", pinyin: "shū", words: ["书本", "书包", "书店"] },
+                { char: "自", pinyin: "zì", words: ["自己", "自然", "自由"] },
+                { char: "已", pinyin: "yǐ", words: ["已经", "早已", "已故"] },
+                { char: "东", pinyin: "dōng", words: ["东方", "东西", "东北"] },
+                { char: "西", pinyin: "xī", words: ["西方", "西瓜", "西北"] },
+                { char: "回", pinyin: "huí", words: ["回家", "回来", "回答"] },
+                { char: "片", pinyin: "piàn", words: ["照片", "卡片", "一片"] }
+            ]
+        };
+
+        let currentLevel = null;
+        let currentCards = [];
+        let currentIndex = 0;
+
+        function selectLevel(level) {
+            currentLevel = level;
+            currentCards = [...wordCards[level]];
+            shuffleArray(currentCards);
+            currentIndex = 0;
+            document.getElementById('card-container').classList.remove('hidden');
+            showCurrentCard();
+        }
+
+        function nextCard() {
+            currentIndex = (currentIndex + 1) % currentCards.length;
+            showCurrentCard();
+            // 自动朗读新字
+            speakCurrentCharacter();
+        }
+
+        function showCurrentCard() {
+            const card = currentCards[currentIndex];
+            document.getElementById('current-character').innerHTML = 
+                `${card.char}<span class="speaker-icon" onclick="speakCurrentCharacter(event)">🔊</span>`;
+            document.getElementById('current-pinyin').textContent = card.pinyin;
+            
+            const wordsContainer = document.getElementById('current-words');
+            wordsContainer.innerHTML = '';
+            card.words.forEach(word => {
+                const div = document.createElement('div');
+                div.textContent = word;
+                wordsContainer.appendChild(div);
+            });
+        }
+
+        // 朗读当前汉字
+        function speakCurrentCharacter(event) {
+            if (event) {
+                event.stopPropagation(); // 防止触发卡片翻转
+            }
+            
+            if (!currentCards.length) return;
+            
+            const card = currentCards[currentIndex];
+            const utterance = new SpeechSynthesisUtterance(card.char);
+            
+            // 设置中文发音
+            utterance.lang = 'zh-CN';
+            utterance.rate = 0.8; // 稍微放慢语速
+            
+            // 检查浏览器是否支持语音合成
+            if ('speechSynthesis' in window) {
+                // 取消任何正在进行的语音
+                window.speechSynthesis.cancel();
+                // 朗读
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert('您的浏览器不支持语音朗读功能，请使用Chrome或Edge等现代浏览器。');
+            }
+        }
+
+        // 打乱数组顺序
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+    </script>
 </body>
 </html>
